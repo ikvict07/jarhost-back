@@ -4,5 +4,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('jars/', include('jars.urls')),
+    path('board/jars/', include('jars.urls')),
 ]

@@ -1,31 +1,31 @@
-import json
 import requests
 
-from django.http import JsonResponse, Http404
+from django.db import IntegrityError
+from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import status
 from jars.models import Jar
-from jars.serializers import JarSerializer
 
 
 @api_view(['POST'])
 def AddJar(request):
     monoid = request.data['monoid']
     monoJarid = request.data['monoJarid']
-    url = request.data['url']
     list_of_jars = getJarsById(monoid)
+
+    if list_of_jars is None:
+        return Response({"errors": ["Invalid monoid"]})
+
     for jar in list_of_jars:
         if jar['id'] == monoJarid:
-            saveJarToDB(jar, monoid, url)
-            return Response({"message": "ok", "monoid": monoid, "monoJarid": monoJarid, "jar": jar}, status=201)
-    return Http404("No jar was found")
+            try:
+                saveJarToDB(jar, monoid)
+            except IntegrityError:
+                return Response({"errors": ["Jar with this id already exists"]})
 
-    # serializer = JarSerializer(data=request.data)
-    # if serializer.is_valid():
-    #     serializer.save()
-    #     return Response(serializer.data, status=201)
-    # return Response(serializer.errors, status=400)
-    #
+            return Response(jar)
+    return Response({"errors": ["No jar was found"]})
 
 
 @api_view(['GET'])
@@ -33,7 +33,7 @@ def JarDetail(request, pk):
     try:
         jar = Jar.objects.get(pk=pk)
     except Jar.DoesNotExist:
-        raise Http404('Jar does not exist')
+        return Response({"errors": ["No jar was found"]})
 
     jar_list = getJarsById(jar.monoid)
     for jar_from_api in jar_list:
@@ -41,19 +41,32 @@ def JarDetail(request, pk):
             return JsonResponse({
                 "name": jar.name,
                 "description": jar.description,
+                "url": "https://send.monobank.ua/" + jar_from_api["sendId"],
                 "currencyCode": jar_from_api['currencyCode'],
                 "balance": jar_from_api['balance'],
                 "goal": jar_from_api['goal'],
-                "url": jar.url
             })
-
-    serializer = JarSerializer(jar)
-    return Response(serializer.data)
+    return Response({"errors": ["No jar was found"]})
 
 
 @api_view(['GET'])
-def FetchByUserId(request):
-    return JsonResponse({"message": "mock data"})  # TODO:
+def FetchByUserId(request, pk):
+    return JsonResponse({"message": "mock data"})  # TODO: implement controller
+
+
+@api_view(["GET"])
+def PaginationController(request):
+    jars_count_in_db = len(Jar.objects.all())
+
+    from_index = int(request.GET.get('from', 1))
+    to_index = int(request.GET.get('to', jars_count_in_db))
+
+    from_index = 1 if from_index == 0 else from_index
+
+    jars = Jar.objects.all()[from_index - 1:to_index]
+    serialized_jars = list(jars.values())
+
+    return JsonResponse(serialized_jars, safe=False)
 
 
 def getJarsById(monoid):
@@ -64,7 +77,7 @@ def getJarsById(monoid):
     }
 
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
+    if response.status_code == status.HTTP_200_OK:
         monobank_data = response.json()
         jars_list = monobank_data['jars']
         return jars_list
@@ -72,13 +85,12 @@ def getJarsById(monoid):
         return None
 
 
-def saveJarToDB(jar, monoid, url):
+def saveJarToDB(jar, monoid):
     jar_to_save = Jar()
 
     jar_to_save.monoid = monoid
     jar_to_save.monoJarid = jar["id"]
     jar_to_save.name = jar["title"]
     jar_to_save.description = jar["description"]
-    jar_to_save.url = url
 
     jar_to_save.save()

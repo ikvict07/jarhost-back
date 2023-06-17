@@ -1,10 +1,8 @@
 from django.db import models
-from django.template.defaulttags import comment
 
 
 class Jar(models.Model):
-    url = models.CharField(max_length=255)
-    monoJarid = models.CharField(max_length=255)
+    monoJarid = models.CharField(max_length=255, unique=True)
     monoid = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField()
