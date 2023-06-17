@@ -3,6 +3,8 @@ from django.template.defaulttags import comment
 
 
 class Jar(models.Model):
+    url = models.CharField(max_length=255)
+    monoJarid = models.CharField(max_length=255)
     monoid = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     description = models.TextField()
