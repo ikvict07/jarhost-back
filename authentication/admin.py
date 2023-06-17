@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Jar
+from .models import CustomUser
 
-admin.site.register(Jar)
-
+admin.site.register(CustomUser)
