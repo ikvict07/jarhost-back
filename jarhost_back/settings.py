@@ -41,7 +41,21 @@ INSTALLED_APPS = [
     'rest_framework',
     'jars',
     'authentication',
+    'rest_framework.authtoken',
 ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.ukr.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jarhost@ukr.net'
+EMAIL_HOST_PASSWORD = 'rE4tteo9'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
