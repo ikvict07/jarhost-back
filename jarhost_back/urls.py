@@ -6,4 +6,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('board/jars/', include('jars.urls')),
     path('auth/', include('authentication.urls')),
+    path('blog/', include('blog.urls'))
 ]
