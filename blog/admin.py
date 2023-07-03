@@ -1,9 +1,16 @@
 from django.contrib import admin
-from .models import Post
+from .models import Squad, News
 
-class PostAdmin(admin.ModelAdmin):
-    list_display = ['title', 'created_at']
-    list_filter = ['created_at']
-    search_fields = ['title']
 
-admin.site.register(Post, PostAdmin)
+class SquadAdmin(admin.ModelAdmin):
+    list_display = ['name', 'description']
+    search_fields = ['name']
+
+
+class NewsSquads(admin.ModelAdmin):
+    list_display = ('squad', 'author', 'title', 'content', 'created_at', 'updated_at', 'slug')
+    search_fields = ('squad', 'title')
+
+
+admin.site.register(Squad, SquadAdmin)
+admin.site.register(News, NewsSquads)
