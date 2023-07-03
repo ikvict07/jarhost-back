@@ -1,6 +1,8 @@
 from urllib.parse import urlparse
 
-from django.contrib.auth.models import User
+from django.conf import settings
+# from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import models
@@ -9,7 +11,7 @@ from django.utils.text import slugify
 
 # Add parameters
 class Squad(models.Model):
-    name = models.CharField(max_length=70, unique=True)
+    name = models.CharField(max_length=70, unique=True, verbose_name='Назва підрозділу')
     description = models.TextField(help_text="Напішіть про ваш підрозділ", verbose_name="Про підрозділ",
                                    error_messages={'blank': "Це поле не може бути пустим"})
 
@@ -20,7 +22,7 @@ class Squad(models.Model):
 # Check class User
 class News(models.Model):
     squad = models.ForeignKey(Squad, on_delete=models.CASCADE, related_name='news')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='author')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='author')
     title = models.CharField(max_length=200, help_text="Назвіть вашу новину",
                              verbose_name="Ваші новини")  # What about validators?
     content = models.TextField(help_text="В цьому полі можете додати новину про ваш підрозділ",
@@ -40,7 +42,7 @@ class News(models.Model):
 
 class Comment(models.Model):
     news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField(max_length=200, verbose_name="Ваш коментар")                     # Need to add validator
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
